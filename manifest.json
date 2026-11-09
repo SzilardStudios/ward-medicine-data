@@ -1,12 +1,12 @@
 {
   "format": 1,
-  "version": "2026-W45",
-  "released": "2026-11-02",
-  "source": "NHS dm+d release 11.0.0, 2 Nov 2026",
-  "file": "dmd-pack-2026-W45.json",
-  "bytes": 2915516,
-  "crc32": "41d5e90f",
-  "products": 17000,
-  "brands": 16299,
-  "gtins": 32076
+  "version": "2026-W46",
+  "released": "2026-11-09",
+  "source": "NHS dm+d release 11.1.0, 9 Nov 2026",
+  "file": "dmd-pack-2026-W46.json",
+  "bytes": 2916451,
+  "crc32": "54499263",
+  "products": 17001,
+  "brands": 16303,
+  "gtins": 32104
 }
