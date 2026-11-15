@@ -22,7 +22,7 @@ concurrency:
 
 env:
   # Folder in this repository that holds manifest.json and the pack files the app downloads
-  DATA_DIR: ward-medicine-data
+  DATA_DIR: .
 
 jobs:
   update:
