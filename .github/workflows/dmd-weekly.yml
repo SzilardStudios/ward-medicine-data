@@ -1,0 +1,69 @@
+name: Weekly medicine data update
+
+on:
+  schedule:
+    # NHS dm+d is released on Mondays. Check several times that day and once on Tuesday.
+    # If nothing new is on TRUD the run stops in a few seconds without changing anything.
+    - cron: '30 7,10,14,18 * * 1'
+    - cron: '30 7 * * 2'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Test only: build and check, do not publish (tick this for a first run)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dmd-weekly
+  cancel-in-progress: false
+
+env:
+  # Folder in this repository that holds manifest.json and the pack files the app downloads
+  DATA_DIR: ward-medicine-data
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build the medicine data pack
+        env:
+          TRUD_API_KEY: ${{ secrets.TRUD_API_KEY }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            python -I tools/dmd/weekly_build.py --data-dir test-output --dry-run
+          else
+            python -I tools/dmd/weekly_build.py --data-dir "$DATA_DIR"
+          fi
+
+      - name: Keep the test output (dry run only)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: test-output
+          retention-days: 7
+
+      - name: Publish
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        run: |
+          if [ -z "$(git status --porcelain -- "$DATA_DIR")" ]; then
+            echo "No change to publish."
+            exit 0
+          fi
+          VERSION=$(python -c "import json;print(json.load(open('$DATA_DIR/manifest.json'))['version'])")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$DATA_DIR"
+          git commit -m "Medicine data $VERSION"
+          git push
