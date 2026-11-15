@@ -1,0 +1,50 @@
+Ward Drug Lookup - automatic weekly medicine data update (GitHub)
+
+What it does
+Every Monday GitHub runs a small program that fetches the newest NHS dm+d release from NHS TRUD,
+builds the data pack, checks it the same way the app does, and publishes it into your
+ward-medicine-data folder. If TRUD has nothing new, it stops after a few seconds and changes nothing.
+If anything looks wrong it publishes NOTHING and GitHub marks the run red (and emails you).
+
+Do this once
+
+1. Get your TRUD API key
+   Sign in at TRUD, open your account page, and find "API key". Copy it. NEVER paste it into the chat,
+   an email, or a file in the repository.
+
+2. Save the key in GitHub as a secret
+   Your repository -> Settings -> Secrets and variables -> Actions -> New repository secret
+   Name:   TRUD_API_KEY      (exactly this)
+   Secret: paste the key, then Add secret.
+
+3. Add the files to the repository (same repository that holds the ward-medicine-data folder)
+   tools/dmd/weekly_build.py
+   tools/dmd/build_index2.py
+   tools/dmd/filter_index.py
+   tools/dmd/make_app_dmd.py
+   tools/dmd/make_pack.py
+   .github/workflows/dmd-weekly.yml
+   Easiest in the browser: Add file -> Upload files, drag the "tools" folder in, commit.
+   For the workflow file use Add file -> Create new file, type the name
+   .github/workflows/dmd-weekly.yml and paste in the contents, then commit.
+   If your data folder is not called ward-medicine-data, change DATA_DIR near the top of the workflow file.
+
+4. Test run (publishes nothing)
+   Actions tab -> "Weekly medicine data update" -> Run workflow. Leave "dry_run" ticked. Run.
+   It takes about two minutes. When it is green, open the run, download the "test-output" file, and check
+   manifest.json: it should show 2026-W46 with crc32 54499263 (the same as the pack already online).
+   That proves the whole chain works with your real TRUD key.
+
+5. Monday
+   It runs by itself (several times on Monday, once on Tuesday). Check
+   https://szilardstudios.com/ward-medicine-data/manifest.json in the evening: version should be 2026-W47.
+   Then update the app on a phone: the "new medicine data" notice should appear.
+
+If the test run goes red
+   Copy the red lines of the log and send them. The key never appears in the log.
+
+Notes
+- It keeps the last 4 pack files and removes older ones.
+- The app's own checks (size, CRC, structure, at least 90% of current products) still run on the phone.
+- GitHub pauses scheduled workflows in a repository with no activity for 60 days; weekly updates count as activity.
+- If your website does not refresh by itself after the workflow's commit, tell me and we will fix the publishing step.
