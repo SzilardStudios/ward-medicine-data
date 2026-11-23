@@ -4,7 +4,7 @@ on:
   schedule:
     # NHS dm+d is released on Mondays. Check several times that day and once on Tuesday.
     # If nothing new is on TRUD the run stops in a few seconds without changing anything.
-    - cron: '7,27,47 6-21 * * 1'
+    - cron: '7,27,47 5-21 * * 1'
     - cron: '41 6,12 * * 2'
     - cron: '17 7 * * 3'
   workflow_dispatch:
